@@ -25,10 +25,16 @@ function cleanText(text) {
 // significant word from the user's values or "known for" input, so it
 // doesn't drift into a generic statement disconnected from what was typed.
 function isGrounded(statement, values, knownFor) {
-  const inputWords = `${values} ${knownFor}`
-    .toLowerCase()
-    .split(/[^a-z0-9]+/)
-    .filter((w) => w.length > 4);
+  const combined = `${values} ${knownFor}`.toLowerCase();
+  let inputWords = combined.split(/[^a-z0-9]+/).filter((w) => w.length > 4);
+  // If every word in the input is short (e.g. "fun", "art", "kids"), the
+  // length>4 filter used to leave inputWords empty, which made the check
+  // trivially pass with no real grounding verified. Fall back to shorter
+  // words (still skipping filler words) so short inputs are still checked.
+  if (inputWords.length === 0) {
+    const filler = new Set(["and", "for", "the", "with", "that", "who"]);
+    inputWords = combined.split(/[^a-z0-9]+/).filter((w) => w.length > 2 && !filler.has(w));
+  }
   if (inputWords.length === 0) return true;
   const lowerStatement = statement.toLowerCase();
   return inputWords.some((w) => lowerStatement.includes(w));
