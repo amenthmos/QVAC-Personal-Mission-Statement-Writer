@@ -21,6 +21,15 @@ Built on [Tether's QVAC SDK](https://www.npmjs.com/package/@qvac/sdk) — all in
 
 A grounding check verifies the generated statement actually references a word from the values or "known for" text before showing it, falling back to a simple templated statement otherwise.
 
+## Example
+
+Input: `{"values":"honesty, curiosity, resilience","knownFor":"helping others grow"}`
+
+Output (from a real run):
+```json
+{"statement":"I strive to be honest, stay curious, and navigate life's challenges with the same resilience I've faced. I aim to be known as a trusted guide and growth mentor, willing to listen, learn, and walk alongside others in their journeys."}
+```
+
 ## License
 
 MIT
