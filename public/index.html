@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>QVAC Personal Mission Statement Writer</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: linear-gradient(160deg, #eef0ff 0%, #dee2fb 100%);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #2b2a63;
+    display: flex; justify-content: center; padding: 46px 20px;
+  }
+  .wrap { width: 100%; max-width: 520px; }
+  .icon { font-size: 2rem; margin-bottom: 4px; text-align: center; }
+  h1 { font-size: 1.5rem; margin: 0 0 6px; color: #4640b0; font-weight: 800; text-align: center; }
+  .subtitle { color: #6a67a0; margin-bottom: 24px; font-size: 0.9rem; text-align: center; }
+  .card { background: #fbfbff; border: 1px solid #d3d5f7; border-radius: 16px; padding: 28px 26px; box-shadow: 0 4px 16px rgba(70,64,176,0.08); }
+  label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #2b2a63; }
+  input[type=text] {
+    width: 100%; padding: 12px 14px; border-radius: 10px; border: 1.5px solid #c2c5f2;
+    background: #fdfdff; color: #2b2a63; font-family: inherit; font-size: 1rem; margin-bottom: 18px;
+  }
+  input[type=text]:focus { outline: none; border-color: #4640b0; }
+  button.action {
+    width: 100%; padding: 13px 20px; border: none; border-radius: 10px; font-size: 1rem;
+    font-weight: 700; font-family: inherit; cursor: pointer; background: #4640b0; color: #fff;
+  }
+  button.action:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.action:hover:not(:disabled) { background: #38348c; }
+  .status { margin-top: 14px; font-size: 0.85rem; color: #6a67a0; min-height: 1.2em; }
+  #resultBox { margin-top: 18px; }
+  .statement { background: #f1f1ff; border: 1px solid #d3d5f7; border-radius: 10px; padding: 16px; font-size: 1.05rem; line-height: 1.6; font-style: italic; color: #2b2a63; }
+  .footer-note { color: #6a67a0; font-size: 0.78rem; margin-top: 20px; text-align: center; }
+  .spinner {
+    display: inline-block; width: 13px; height: 13px; border: 2px solid #d3d5f7;
+    border-top-color: #4640b0; border-radius: 50%; animation: spin 0.8s linear infinite;
+    vertical-align: middle; margin-right: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="icon">🧭</div>
+    <h1>Personal Mission Statement Writer</h1>
+    <p class="subtitle">Enter your values and reputation goal, get a grounded mission statement. 100% on-device.</p>
+
+    <div class="card">
+      <label for="valuesInput">Your core values</label>
+      <input type="text" id="valuesInput" placeholder="e.g. honesty, curiosity, resilience" />
+      <label for="knownInput">What you want to be known for</label>
+      <input type="text" id="knownInput" placeholder="e.g. helping others grow" />
+      <button class="action" id="generateBtn">Write My Statement</button>
+      <div class="status" id="status"></div>
+      <div id="resultBox"></div>
+    </div>
+
+    <p class="footer-note">Everything runs locally on your machine. No text ever leaves this device.</p>
+  </div>
+
+  <script>
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    const valuesInput = document.getElementById('valuesInput');
+    const knownInput = document.getElementById('knownInput');
+    const generateBtn = document.getElementById('generateBtn');
+    const status = document.getElementById('status');
+    const resultBox = document.getElementById('resultBox');
+
+    async function generate() {
+      const values = valuesInput.value.trim();
+      const knownFor = knownInput.value.trim();
+      if (!values || !knownFor) return;
+      generateBtn.disabled = true;
+      resultBox.innerHTML = '';
+      status.innerHTML = '<span class="spinner"></span>Writing your statement...';
+
+      try {
+        const res = await fetch('/api/mission', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ values, knownFor }),
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        status.textContent = '';
+        resultBox.innerHTML = `<div class="statement">${escapeHtml(data.statement)}</div>`;
+      } catch (err) {
+        status.textContent = 'Error: ' + err.message;
+      } finally {
+        generateBtn.disabled = false;
+      }
+    }
+
+    generateBtn.addEventListener('click', generate);
+    knownInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') generate(); });
+  </script>
+</body>
+</html>
